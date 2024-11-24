@@ -11,44 +11,55 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
-
 @Service
 @Slf4j
 @AllArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oauthUser = super.loadUser(userRequest);
-
-        log.debug("OAuth2User: {}", oauthUser.getAttributes());
         return processOAuth2User(oauthUser);
     }
 
     private OAuth2User processOAuth2User(OAuth2User oauthUser) {
         String email = oauthUser.getAttribute("email");
-        User user = userRepository.findByEmail(email).orElse(null);
 
-        if (user == null) {
-            log.debug("User not found with email: {}. Creating a new user.", email);
-            user = new User();
-            assert email != null;
-            user.setEmail(email);
-            user.setUserName(Objects.requireNonNull(oauthUser.getAttribute("name")));
-            user.setGivenName(Objects.requireNonNull(oauthUser.getAttribute("given_name")));
-            user.setFamilyName(Objects.requireNonNull(oauthUser.getAttribute("family_name")));
-            user.setPicture(oauthUser.getAttribute("picture"));
-            log.debug("Saving user: {}", user);
-            userRepository.save(user);
+        if (email == null) {
+            throw new OAuth2AuthenticationException("Email attribute is missing in OAuth2 response.");
         }
+
+        userRepository.findByEmail(email).orElseGet(() -> createNewUser(oauthUser, email));
 
         return new DefaultOAuth2User(
                 oauthUser.getAuthorities(),
                 oauthUser.getAttributes(),
                 "email"
         );
+    }
+
+    private User createNewUser(OAuth2User oauthUser, String email) {
+        log.debug("User not found with email: {}. Creating a new user.", email);
+
+        User user = new User();
+        user.setEmail(email);
+        user.setUserName(getAttribute(oauthUser, "name"));
+        user.setGivenName(getAttribute(oauthUser, "given_name"));
+        user.setFamilyName(getAttribute(oauthUser, "family_name"));
+        user.setPicture(oauthUser.getAttribute("picture"));
+
+        return userRepository.save(user);
+    }
+
+    private String getAttribute(OAuth2User oauthUser, String attributeName) {
+        String value = oauthUser.getAttribute(attributeName);
+
+        if (value == null) {
+            throw new OAuth2AuthenticationException("Missing required attribute: " + attributeName);
+        }
+
+        return value;
     }
 }
