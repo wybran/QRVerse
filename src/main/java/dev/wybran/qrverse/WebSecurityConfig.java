@@ -1,7 +1,7 @@
 package dev.wybran.qrverse;
 
 import dev.wybran.qrverse.service.CustomOAuth2UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,10 +22,10 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(jsr250Enabled = true)
+@RequiredArgsConstructor
 public class WebSecurityConfig {
 
-    @Autowired
-    private CustomOAuth2UserService customOAuth2UserService;
+    private final CustomOAuth2UserService customOAuth2UserService;
 
     @Value("${redirectUri}")
     private String redirectUri;
