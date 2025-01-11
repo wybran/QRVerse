@@ -10,4 +10,9 @@ class QrVerseApplicationTests {
     void contextLoads() {
     }
 
+    @Test
+    void main() {
+        QrVerseApplication.main(new String[]{});
+    }
+
 }

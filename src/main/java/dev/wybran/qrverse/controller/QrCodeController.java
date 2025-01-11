@@ -1,11 +1,13 @@
 package dev.wybran.qrverse.controller;
 
+import dev.wybran.qrverse.dto.request.QrCodeRequest;
 import dev.wybran.qrverse.model.QrCode;
 import dev.wybran.qrverse.service.QrCodeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -16,8 +18,8 @@ public class QrCodeController {
     private final QrCodeService qrCodeService;
 
     @PostMapping
-    public ResponseEntity<QrCode> createQrCode(@RequestBody QrCode qrCode) {
-        return ResponseEntity.ok(qrCodeService.createQrCode(qrCode));
+    public ResponseEntity<QrCode> createQrCode(Principal principal, @RequestBody QrCodeRequest qrCode) {
+        return ResponseEntity.ok(qrCodeService.createQrCode(principal.getName(), qrCode));
     }
 
     @GetMapping("/{uuid}")

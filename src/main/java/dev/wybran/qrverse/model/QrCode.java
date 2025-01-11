@@ -18,8 +18,6 @@ public class QrCode {
 
     private String link;
 
-    private boolean dynamic;
-
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
