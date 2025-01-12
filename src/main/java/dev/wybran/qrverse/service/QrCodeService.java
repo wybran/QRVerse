@@ -5,6 +5,7 @@ import dev.wybran.qrverse.dto.response.QRCodeResponse;
 import dev.wybran.qrverse.dto.response.UserResponse;
 import dev.wybran.qrverse.model.QrCode;
 import dev.wybran.qrverse.repository.QrCodeRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -60,6 +61,7 @@ public class QrCodeService {
         return mapToResponse(updatedQrCodeEntity);
     }
 
+    @Transactional
     public void deleteQrCode(String uuid) {
         qrCodeRepository.deleteByUuid(uuid);
     }
