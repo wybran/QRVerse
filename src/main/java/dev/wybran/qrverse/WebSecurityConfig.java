@@ -20,7 +20,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 @Configuration
-@EnableWebSecurity
+@EnableWebSecurity(debug = true)
 @EnableMethodSecurity(jsr250Enabled = true)
 @RequiredArgsConstructor
 public class WebSecurityConfig {
@@ -40,7 +40,8 @@ public class WebSecurityConfig {
                 .cors(httpSecurityCorsConfigurer -> httpSecurityCorsConfigurer.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/login", "/error").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/qr-codes/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(

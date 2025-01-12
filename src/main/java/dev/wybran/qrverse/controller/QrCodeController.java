@@ -5,6 +5,7 @@ import dev.wybran.qrverse.model.QrCode;
 import dev.wybran.qrverse.service.QrCodeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -23,20 +24,42 @@ public class QrCodeController {
     }
 
     @GetMapping("/{uuid}")
-    public ResponseEntity<Void> redirectToLink(@PathVariable String uuid) {
+    public ResponseEntity<String> getQrCodeLink(
+            @PathVariable String uuid,
+            @RequestHeader(value = "Authorization", required = false) String password
+    ) {
         QrCode qrCode = qrCodeService.getQrCodeByUuid(uuid)
                 .orElseThrow(() -> new RuntimeException("QR code not found"));
 
+        if (qrCode.getPassword() != null) {
+            if (password == null) {
+                return ResponseEntity.status(401).body("Password required");
+            } else if (!validatePassword(password, qrCode.getPassword())) {
+                return ResponseEntity.status(401).body("Invalid password");
+            }
+        }
+
         qrCodeService.incrementClickCount(uuid);
 
-        return ResponseEntity.status(302)
-                .header("Location", qrCode.getLink())
-                .build();
+        String link = qrCode.getLink();
+        if (!link.startsWith("http")) {
+            link = "http://" + link;
+        }
+
+        return ResponseEntity.ok(link);
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<QrCode>> getUserQrCodes(@PathVariable Long userId) {
-        return ResponseEntity.ok(qrCodeService.getUserQrCodes(userId));
+    private boolean validatePassword(String authorizationHeader, String storedPassword) {
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        return passwordEncoder.matches(authorizationHeader, storedPassword);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<QrCode>> getUserQrCodes(Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).build();
+        }
+        return ResponseEntity.ok(qrCodeService.getUserQrCodes(principal.getName()));
     }
 
     @PutMapping("/{uuid}")

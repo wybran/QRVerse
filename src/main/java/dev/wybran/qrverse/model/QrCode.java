@@ -2,6 +2,7 @@ package dev.wybran.qrverse.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.springframework.lang.Nullable;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -23,6 +24,9 @@ public class QrCode {
     private LocalDateTime updatedAt;
 
     private long clickCount;
+
+    @Nullable
+    private String password;
 
     @PrePersist
     protected void onCreate() {

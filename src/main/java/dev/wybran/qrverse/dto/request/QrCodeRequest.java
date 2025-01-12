@@ -8,4 +8,5 @@ import lombok.Setter;
 @AllArgsConstructor
 public class QrCodeRequest {
     private final String link;
+    private final String password;
 }
